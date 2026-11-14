@@ -9,6 +9,8 @@ Les appels partent directement du navigateur vers le fournisseur. Aucun serveur 
     public/index.html   interface
     public/style.css    style
     public/app.js       logique (appels API, streaming, stockage de la clé)
+    public/firebase-config.js  configuration web Firebase (firebaseConfig, à renseigner)
+    public/firebase-init.js    initialisation Firebase (ignorée tant que la config n'est pas remplie)
     firebase.json       configuration Firebase Hosting + en têtes de sécurité
     .firebaserc         identifiant du projet Firebase (à remplacer)
 
