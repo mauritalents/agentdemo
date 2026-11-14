@@ -3,10 +3,10 @@
 // Ces valeurs ne sont PAS des secrets : elles identifient votre projet. La sécurité repose sur les règles
 // Firebase (Auth, Firestore...) et non sur le secret de ce fichier. Ne mettez jamais ici une clé API de LLM (Groq, etc.).
 window.FIREBASE_CONFIG = {
-  apiKey: "REMPLACEZ_PAR_VOTRE_API_KEY",
-  authDomain: "REMPLACEZ.firebaseapp.com",
-  projectId: "REMPLACEZ_PAR_VOTRE_ID_PROJET",
-  storageBucket: "REMPLACEZ.firebasestorage.app",
-  messagingSenderId: "REMPLACEZ",
-  appId: "REMPLACEZ"
+  apiKey: "AIzaSyB85qdMiCc6NyPm8kqhPyKsWtPHtUvM4Oc",
+  authDomain: "agentia-7131e.firebaseapp.com",
+  projectId: "agentia-7131e",
+  storageBucket: "agentia-7131e.firebasestorage.app",
+  messagingSenderId: "950370789906",
+  appId: "1:950370789906:web:7e1b02a96cbc1c08a946cb"
 };
