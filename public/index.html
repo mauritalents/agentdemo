@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Agent conversationnel, démo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ÉCRAN 1 : configuration -->
+  <main id="setup" class="card">
+    <h1>Agent conversationnel</h1>
+    <p class="lead">Renseignez votre fournisseur d'IA et votre propre clé API pour discuter avec le modèle.</p>
+
+    <form id="setupForm" autocomplete="off">
+      <label for="provider">Fournisseur LLM</label>
+      <select id="provider"></select>
+
+      <div id="customBox" hidden>
+        <label for="customUrl">URL de base (compatible OpenAI)</label>
+        <input id="customUrl" type="url" placeholder="https://exemple.com/v1">
+      </div>
+
+      <label for="apiKey">Clé API</label>
+      <input id="apiKey" type="password" placeholder="Collez votre clé ici" required spellcheck="false" autocomplete="off">
+      <a id="keyLink" class="hint" href="#" target="_blank" rel="noopener noreferrer" hidden>Où créer ma clé ?</a>
+
+      <label for="model">Modèle</label>
+      <div class="row">
+        <input id="model" list="modelList" placeholder="ex : llama-3.3-70b-versatile" required spellcheck="false">
+        <button type="button" id="loadModels" class="secondary">Charger la liste</button>
+      </div>
+      <datalist id="modelList"></datalist>
+
+      <label class="check">
+        <input id="remember" type="checkbox">
+        <span>Mémoriser sur cet appareil (à éviter sur un ordinateur partagé)</span>
+      </label>
+
+      <div id="setupError" class="error" hidden></div>
+      <button type="submit" class="primary">Démarrer la conversation</button>
+    </form>
+
+    <p class="privacy">
+      Votre clé reste dans votre navigateur. Elle est envoyée uniquement au fournisseur choisi,
+      jamais à un serveur de cette application. Par défaut elle est effacée à la fermeture de l'onglet.
+    </p>
+  </main>
+
+  <!-- ÉCRAN 2 : conversation -->
+  <section id="chat" hidden>
+    <header>
+      <div>
+        <strong>Agent conversationnel</strong>
+        <span id="badge" class="badge"></span>
+      </div>
+      <div class="actions">
+        <button type="button" id="newChat" class="secondary">Nouvelle conversation</button>
+        <button type="button" id="logout" class="secondary">Changer de clé</button>
+      </div>
+    </header>
+
+    <details id="sysBox">
+      <summary>Consigne système (comportement de l'agent)</summary>
+      <textarea id="systemPrompt" rows="3"></textarea>
+    </details>
+
+    <div id="messages" aria-live="polite"></div>
+
+    <form id="chatForm">
+      <textarea id="input" rows="2" placeholder="Écrivez votre message (Entrée pour envoyer, Maj+Entrée pour aller à la ligne)"></textarea>
+      <button type="submit" id="send" class="primary">Envoyer</button>
+      <button type="button" id="stop" class="secondary" hidden>Arrêter</button>
+    </form>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
