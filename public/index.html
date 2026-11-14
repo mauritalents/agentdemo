@@ -28,8 +28,12 @@
       <a id="keyLink" class="hint" href="#" target="_blank" rel="noopener noreferrer" hidden>Où créer ma clé ?</a>
 
       <label for="model">Modèle</label>
+      <label class="check inline">
+        <input id="autoModel" type="checkbox" checked>
+        <span>Choisir automatiquement le meilleur modèle disponible (recommandé)</span>
+      </label>
       <div class="row">
-        <input id="model" list="modelList" placeholder="ex : openai/gpt-oss-120b" required spellcheck="false">
+        <input id="model" list="modelList" spellcheck="false">
         <button type="button" id="loadModels" class="secondary">Charger la liste</button>
       </div>
       <datalist id="modelList"></datalist>
@@ -40,7 +44,7 @@
       </label>
 
       <div id="setupError" class="error" hidden></div>
-      <button type="submit" class="primary">Démarrer la conversation</button>
+      <button type="submit" id="startBtn" class="primary">Démarrer la conversation</button>
     </form>
 
     <p class="privacy">
@@ -55,6 +59,7 @@
       <div>
         <strong>Agent conversationnel</strong>
         <span id="badge" class="badge"></span>
+        <select id="modelSelect" title="Changer de modèle" aria-label="Modèle"></select>
       </div>
       <div class="actions">
         <button type="button" id="newChat" class="secondary">Nouvelle conversation</button>
