@@ -5,7 +5,7 @@
   // "type: openai" = API compatible OpenAI (/chat/completions). Les modèles par défaut
   // sont des suggestions : utilisez "Charger la liste" pour voir les modèles réellement disponibles.
   var PROVIDERS = {
-    groq:       { label: 'Groq',                type: 'openai',    base: 'https://api.groq.com/openai/v1',                          model: 'llama-3.3-70b-versatile',  keyUrl: 'https://console.groq.com/keys' },
+    groq:       { label: 'Groq',                type: 'openai',    base: 'https://api.groq.com/openai/v1',                          model: 'openai/gpt-oss-120b',      keyUrl: 'https://console.groq.com/keys' },
     openai:     { label: 'OpenAI',              type: 'openai',    base: 'https://api.openai.com/v1',                               model: 'gpt-4o-mini',              keyUrl: 'https://platform.openai.com/api-keys' },
     mistral:    { label: 'Mistral',             type: 'openai',    base: 'https://api.mistral.ai/v1',                               model: 'mistral-small-latest',     keyUrl: 'https://console.mistral.ai/api-keys' },
     openrouter: { label: 'OpenRouter',          type: 'openai',    base: 'https://openrouter.ai/api/v1',                            model: 'openai/gpt-4o-mini',       keyUrl: 'https://openrouter.ai/keys' },
@@ -171,7 +171,12 @@
     if (e && e.name === 'AbortError') return 'Génération interrompue.';
     if (e && e.status === 401) return 'Clé API refusée (401). Vérifiez la clé et le fournisseur choisi.';
     if (e && e.status === 403) return 'Accès refusé (403). ' + (e.message || '');
-    if (e && e.status === 404) return 'Introuvable (404). Vérifiez le nom du modèle ou l\'URL de base.\n' + (e.message || '');
+    var msg = (e && e.message) || '';
+    if (e && (e.status === 400 || e.status === 404) && /model|decommission|not.?found|deprecat/i.test(msg)) {
+      return 'Ce modèle est introuvable ou a été retiré par le fournisseur.\n' +
+             'Cliquez sur « Changer de clé », puis sur « Charger la liste » pour choisir un modèle disponible.\n' + msg;
+    }
+    if (e && e.status === 404) return 'Introuvable (404). Vérifiez le nom du modèle ou l\'URL de base.\n' + msg;
     if (e && e.status === 429) return 'Quota ou limite de débit atteint (429). Patientez un peu ou changez de modèle.\n' + (e.message || '');
     if (e && e.status) return 'Erreur ' + e.status + ' : ' + (e.message || '');
     return 'Impossible de joindre le fournisseur. Causes possibles : pas de connexion, ' +
