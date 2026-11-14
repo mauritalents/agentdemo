@@ -72,6 +72,14 @@
       <textarea id="systemPrompt" rows="3"></textarea>
     </details>
 
+    <div id="saveBar">
+      <label class="check inline" for="saveFirestore">
+        <input id="saveFirestore" type="checkbox" disabled>
+        <span>Enregistrer mes échanges dans Firestore</span>
+      </label>
+      <span id="saveStatus">Firebase non configuré</span>
+    </div>
+
     <div id="messages" aria-live="polite"></div>
 
     <form id="chatForm">

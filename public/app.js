@@ -38,13 +38,17 @@
     chat: $('chat'), badge: $('badge'), modelSelect: $('modelSelect'),
     newChat: $('newChat'), logout: $('logout'),
     systemPrompt: $('systemPrompt'), messages: $('messages'), chatForm: $('chatForm'),
-    input: $('input'), send: $('send'), stop: $('stop')
+    input: $('input'), send: $('send'), stop: $('stop'),
+    saveFirestore: $('saveFirestore'), saveStatus: $('saveStatus')
   };
 
   var config = null;          // { provider, customUrl, apiKey, model, auto }
   var availableModels = [];   // modèles de chat connus pour ce fournisseur
   var history = [];           // [{role, content}]
   var controller = null;      // AbortController de la requête en cours
+  var convId = '';            // identifiant de la conversation courante (Firestore)
+  var convStartedAt = '';
+  var saving = false;         // true si l'utilisateur a activé l'enregistrement Firestore
 
   // ---------- Initialisation ----------
   Object.keys(PROVIDERS).forEach(function (k) {
@@ -55,6 +59,9 @@
   els.systemPrompt.value = DEFAULT_SYSTEM;
   onProviderChange();
   onAutoChange();
+
+  refreshSaveBox();
+  document.addEventListener('firebase-ready', refreshSaveBox);
 
   var saved = loadConfig();
   if (saved) { config = saved; startChat(); }
@@ -367,6 +374,56 @@
     addMessage('system', 'Modèle changé : ' + config.model);
   });
 
+
+  // ---------- Enregistrement des échanges dans Firestore (optionnel, désactivé par défaut) ----------
+  function setSaveStatus(text, cls) {
+    els.saveStatus.textContent = text;
+    els.saveStatus.className = cls || '';
+  }
+
+  function refreshSaveBox() {
+    var ok = !!(window.FirebaseSave && window.firebaseApp);
+    els.saveFirestore.disabled = !ok;
+    if (!ok) { saving = false; els.saveFirestore.checked = false; setSaveStatus('Firebase non configuré (voir public/firebase-config.js)'); }
+    else if (!saving) setSaveStatus('Désactivé : rien n\'est envoyé à Firebase');
+  }
+
+  els.saveFirestore.addEventListener('change', function () {
+    if (!els.saveFirestore.checked) {
+      saving = false;
+      setSaveStatus('Désactivé : rien n\'est envoyé à Firebase');
+      return;
+    }
+    els.saveFirestore.disabled = true;
+    setSaveStatus('Connexion à Firebase…');
+    window.FirebaseSave.enable().then(function () {
+      saving = true;
+      setSaveStatus('Actif : vos messages (jamais votre clé API) sont enregistrés dans le projet ' + window.FirebaseSave.projectId, 'ok');
+    }).catch(function (e) {
+      saving = false;
+      els.saveFirestore.checked = false;
+      setSaveStatus('Activation impossible', 'err');
+      addMessage('error', 'Impossible d\'activer l\'enregistrement Firestore : ' + ((e && e.message) || e) +
+        '\nVérifiez dans la console Firebase que l\'authentification anonyme et Firestore sont activés.');
+    }).then(function () {
+      els.saveFirestore.disabled = false;
+    });
+  });
+
+  function saveExchange(userText, answerText) {
+    if (!saving || !window.FirebaseSave) return;
+    window.FirebaseSave.saveExchange({
+      convId: convId, startedAt: convStartedAt,
+      provider: config.provider, model: config.model,
+      user: userText, assistant: answerText
+    }).catch(function (e) {
+      saving = false;
+      els.saveFirestore.checked = false;
+      setSaveStatus('Enregistrement interrompu', 'err');
+      addMessage('error', 'Échec de l\'enregistrement Firestore (désactivé) : ' + ((e && e.message) || e));
+    });
+  }
+
   // ---------- Écran de conversation ----------
   function startChat() {
     els.setup.hidden = true;
@@ -386,6 +443,8 @@
 
   function resetConversation() {
     if (controller) controller.abort();
+    convId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    convStartedAt = new Date().toISOString();
     history = [];
     els.messages.innerHTML = '';
     addMessage('system', 'Conversation prête. Posez votre première question.');
@@ -437,7 +496,7 @@
 
     attempt(false).then(function () {
       if (!answer) { bubble.remove(); addMessage('error', 'Réponse vide du modèle.'); history.pop(); }
-      else history.push({ role: 'assistant', content: answer });
+      else { history.push({ role: 'assistant', content: answer }); saveExchange(text, answer); }
     }).catch(function (e) {
       if (answer) {
         history.push({ role: 'assistant', content: answer });
@@ -463,6 +522,9 @@
     clearConfig();
     config = null;
     availableModels = [];
+    saving = false;
+    els.saveFirestore.checked = false;
+    refreshSaveBox();
     els.chat.hidden = true;
     els.setup.hidden = false;
     els.apiKey.value = '';
