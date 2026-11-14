@@ -376,6 +376,28 @@
 
 
   // ---------- Enregistrement des échanges dans Firestore (optionnel, désactivé par défaut) ----------
+
+  // Traduit les erreurs Firebase fréquentes en consignes concrètes
+  function explainFirebase(e) {
+    var code = (e && e.code) || '';
+    var msg = (e && e.message) || String(e);
+    if (code === 'auth/configuration-not-found' || code === 'auth/operation-not-allowed') {
+      return "L'authentification Firebase n'est pas prête.\n" +
+             "Console Firebase > Build > Authentication > cliquez sur « Commencer », puis onglet « Sign-in method » > « Anonyme » > Activer > Enregistrer.\n" +
+             "Attendez une minute puis rechargez la page.";
+    }
+    if (code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.' || code === 'auth/invalid-api-key') {
+      return "La clé apiKey de public/firebase-config.js est invalide. Recopiez la configuration depuis Paramètres du projet > Vos applications.";
+    }
+    if (code === 'permission-denied' || /Missing or insufficient permissions/i.test(msg)) {
+      return "Firestore a refusé l'écriture. Vérifiez que la base Firestore est créée et que les règles sont déployées : firebase deploy --only firestore:rules";
+    }
+    if (code === 'unavailable' || code === 'failed-precondition' || /database.*not.*exist|NOT_FOUND/i.test(msg)) {
+      return "La base Firestore semble absente ou inaccessible. Console Firebase > Build > Firestore Database > Créer une base de données.";
+    }
+    return msg;
+  }
+
   function setSaveStatus(text, cls) {
     els.saveStatus.textContent = text;
     els.saveStatus.className = cls || '';
@@ -403,8 +425,8 @@
       saving = false;
       els.saveFirestore.checked = false;
       setSaveStatus('Activation impossible', 'err');
-      addMessage('error', 'Impossible d\'activer l\'enregistrement Firestore : ' + ((e && e.message) || e) +
-        '\nVérifiez dans la console Firebase que l\'authentification anonyme et Firestore sont activés.');
+      addMessage('error', 'Impossible d\'activer l\'enregistrement Firestore.\n' + explainFirebase(e) +
+        (e && e.code ? '\n(code : ' + e.code + ')' : ''));
     }).then(function () {
       els.saveFirestore.disabled = false;
     });
@@ -420,7 +442,8 @@
       saving = false;
       els.saveFirestore.checked = false;
       setSaveStatus('Enregistrement interrompu', 'err');
-      addMessage('error', 'Échec de l\'enregistrement Firestore (désactivé) : ' + ((e && e.message) || e));
+      addMessage('error', 'Échec de l\'enregistrement Firestore (désactivé).\n' + explainFirebase(e) +
+        (e && e.code ? '\n(code : ' + e.code + ')' : ''));
     });
   }
 
